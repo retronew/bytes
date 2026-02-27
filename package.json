@@ -1,0 +1,45 @@
+{
+  "name": "@retronew/bytes",
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Tiny TypeScript utilities for converting between raw byte values and human-readable byte strings.",
+  "license": "MIT",
+  "homepage": "https://github.com/retronew/bytes#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/retronew/bytes.git"
+  },
+  "bugs": {
+    "url": "https://github.com/retronew/bytes/issues"
+  },
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "test": "vitest",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "pnpm run build",
+    "check": "ultracite check",
+    "fix": "ultracite fix",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.0",
+    "@types/node": "^25.0.3",
+    "bumpp": "^10.3.2",
+    "husky": "^9.1.7",
+    "tsdown": "^0.18.1",
+    "typescript": "^5.9.3",
+    "ultracite": "^7.2.4",
+    "vitest": "^4.0.16"
+  }
+}
