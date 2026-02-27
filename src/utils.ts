@@ -1,36 +1,31 @@
-const UNITS = [
-  { unit: 'B', power: 0 },
-  { unit: 'KB', power: 1 },
-  { unit: 'MB', power: 2 },
-  { unit: 'GB', power: 3 },
-  { unit: 'TB', power: 4 },
-  { unit: 'PB', power: 5 },
-  { unit: 'EB', power: 6 },
-  { unit: 'ZB', power: 7 },
-  { unit: 'YB', power: 8 },
-] as const
+const UNITS = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'] as const
 
-type UnitLabel = (typeof UNITS)[number]['unit']
+type UnitLabel = (typeof UNITS)[number]
 type ByteUnit = Lowercase<UnitLabel>
 
-interface ParsedInput {
-  floatValue: number
-  unit: ByteUnit
-}
+const LOG_1024 = Math.log(1024)
+
+const POWERS = [
+  1, // 2^0
+  1024, // 2^10
+  1_048_576, // 2^20
+  1_073_741_824, // 2^30
+  1_099_511_627_776, // 2^40
+  1_125_899_906_842_624, // 2^50
+  1024 ** 6, // 2^60
+  1024 ** 7, // 2^70
+  1024 ** 8, // 2^80
+] as const
 
 const UNIT_VALUE_BY_LABEL = Object.fromEntries(
-  UNITS.map(({ unit, power }) => [unit, 1024 ** power])
+  UNITS.map((unit, i) => [unit, POWERS[i]])
 ) as Record<UnitLabel, number>
 
 const UNIT_VALUE_BY_LOWER = Object.fromEntries(
-  UNITS.map(({ unit, power }) => [unit.toLowerCase(), 1024 ** power])
+  UNITS.map((unit, i) => [unit.toLowerCase(), POWERS[i]])
 ) as Record<ByteUnit, number>
 
-const UNIT_THRESHOLDS = [...UNITS]
-  .reverse()
-  .map(({ unit, power }) => ({ unit, threshold: 1024 ** power }))
-
-const PARSEABLE_UNITS = UNITS.map(({ unit }) => unit.toLowerCase()).filter(
+const PARSEABLE_UNITS = UNITS.map((u) => u.toLowerCase()).filter(
   (unit) => unit !== 'b'
 )
 
@@ -44,18 +39,12 @@ const FORMAT_DECIMALS_RE = /(?:\.0*|(\.[^0]+)0+)$/
 
 function toByteUnit(value: string): ByteUnit | null {
   const normalized = value.toLowerCase()
-  if (normalized in UNIT_VALUE_BY_LOWER) {
-    return normalized as ByteUnit
-  }
-  return null
+  return normalized in UNIT_VALUE_BY_LOWER ? (normalized as ByteUnit) : null
 }
 
 function toUnitLabel(value: string): UnitLabel | null {
   const lowerUnit = toByteUnit(value)
-  if (!lowerUnit) {
-    return null
-  }
-  return lowerUnit.toUpperCase() as UnitLabel
+  return lowerUnit ? (lowerUnit.toUpperCase() as UnitLabel) : null
 }
 
 export function resolveUnit(magnitude: number, preferredUnit?: string): string {
@@ -66,13 +55,16 @@ export function resolveUnit(magnitude: number, preferredUnit?: string): string {
     }
   }
 
-  for (const { threshold, unit } of UNIT_THRESHOLDS) {
-    if (magnitude >= threshold) {
-      return unit
-    }
+  if (magnitude < 1) {
+    return 'B'
   }
 
-  return 'B'
+  let e = Math.floor(Math.log(magnitude) / LOG_1024)
+  if (e > 8) {
+    e = 8
+  }
+
+  return UNITS[e]
 }
 
 export function formatValue(
@@ -109,7 +101,9 @@ export function formatValue(
   return formattedValue
 }
 
-export function parseInput(value: string): ParsedInput | null {
+export function parseInput(
+  value: string
+): { floatValue: number; unit: ByteUnit } | null {
   const trimmed = value.trim()
   const strictMatch = PARSE_RE.exec(trimmed)
 
