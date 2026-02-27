@@ -1,7 +1,7 @@
 {
   "name": "@retronew/bytes",
   "type": "module",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Tiny TypeScript utilities for converting between raw byte values and human-readable byte strings.",
   "license": "MIT",
   "homepage": "https://github.com/retronew/bytes#readme",
